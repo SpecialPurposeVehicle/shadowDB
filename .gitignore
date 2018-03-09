@@ -1,6 +1,7 @@
 # Database
 lambeth.db
-public/video*
+public/media*
+documentation*
 
 # Logs
 logs

@@ -1,13 +1,18 @@
-#tax{
-    padding-left:20px;
-    font-size: 90%;
+
+body{
+    background:#000;
+    height:100%;
+    overflow:hidden;
 }
-#tax h4{
-    margin:0px;
-    padding-top:0.4em;
-    color:#555;
-    background:#ccc;
-    text-align:center;
+.fadeback{
+    background:rgba(200,200,200,0.5);
+}
+#tax{
+    padding-right:5px;
+    font-size: 90%;
+    margin-top:15px;
+    height:500px;
+    overflow:auto;
 }
 #tax table{
     border-collapse: collapse;
@@ -16,6 +21,23 @@
     font-family:"Lucida Console", Monaco, monospace;
     font-size:82%;
     margin-bottom:1.5em;
+    background:rgba(254,254,254, 0.9);
+}
+#tax img{
+    width:100%;
+}
+#tax:hover table{
+    background:rgba(254,254,254, 0.9);
+}
+#tax:hover table td, #tax:hover table th{
+    border: 1px solid rgb(160,160,160);
+}
+#tax h4{
+    margin:0px;
+    padding-top:0.4em;
+    color:#555;
+    background:#ccc;
+    text-align:center;
 }
 #tax table td span.name{
     display:block;
@@ -29,7 +51,7 @@
     text-align:right;
 }
 #tax table,  #tax table th{
-    border: 1px solid rgb(190,190,190);
+    border: 1px solid rgb(215,215,215);
     text-align:center;
     color:#444;
 }
@@ -48,7 +70,7 @@
     color:#999;
 }
 #tax table th{
-    background:#ccc;
+    background:#F5F5F5;
 }
 #tax .code{
     font-size:60%;
@@ -58,7 +80,7 @@
 }
 #debug, #qry{
     font-family: courier;
-    font-size: 80%;
+    font-size: 90%;
     text-align:right;
     position:absolute;
     padding-right:3px;
@@ -69,6 +91,9 @@
     width:160px;
     border-left:1px solid #999;
     padding:5px;
+    z-index:100000000;
+    background:rgb(0,0,0,0.8);
+    color:rgb(254,254,254);
 }
 #qry{
     width:250px;
@@ -87,7 +112,6 @@ a {
 }
 #top{
     height:130px;
-    background-color:#eaeded;
     clear:both;
 }
 #bottom, #botbot{
@@ -96,21 +120,32 @@ a {
 #col1, #col2,#col3,#col4,#col5,#col6{
     border:1px solid #ccc;
     height:130px;
+     background:rgba(254,254,254,0.85);
 }
 #left, #right{
-       margin-top:15px;
+
 }
 #left{
     float:left;
-    width:40%;
-
+    width:100%;
+    position: absolute;
+    top:0px;
+    left:0px;
+    z-index:-10;
 }
 #right{
     float:right;
     width:60%;
 }
-img{
+#infobox{
+    position:absolute;
+    top:50%;
+    width:39%;
+}
+#infobox img{
     width:100%;
+    margin-left:15px;
+    margin-right:15px;
     height:auto;
 }
 #videocover{
@@ -118,14 +153,47 @@ img{
 }
 #vidmsg{
     position: absolute ;
-    top:0;
+    top:30%;
+    width:39%;
     z-index:1000;
     padding-top:9px;
-    padding-left:7px;
+    padding-left:15px;
     font-weight:bolder;
     color:#fff;
     text-shadow: 2px 2px 3.5px #111;
+    font-size:160%;
+    text-align: center;
     /* transform: rotate(-4deg); */
+}
+#vidmsg img{
+    width:100%;
+}
+.sub{
+    font-size:70%;
+    margin-top:-0.3em;
+}
+#repair{
+    margin-top:1em;
+    margin-right:15px;
+    text-shadow:none;
+    color:#333;
+    font-weight:normal;
+    font-size:80%;
+    text-align:left;
+    padding:10px;
+    background:rgba(254,254,254,0.9);
+}
+#repair:hover{
+    background:rgba(230,230,230,0.8);
+}
+#repair h4{
+    margin:0px;
+    margin-bottom:1em;
+    border-bottom:1px solid #555;
+}
+#repair hr{
+    border:none;
+    border-top:1px solid #ccc;
 }
 #vidframe{
     position: absolute ;

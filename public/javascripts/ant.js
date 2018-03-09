@@ -1,15 +1,19 @@
 $(function() {
-    console.log( "ready!" );
     var cols = 4;
     var thisfocus = 1;
     var qry = '';
-    var cache = {
+    var cache = { // Local cache
+        'estates':{data:{}},
+        'streets':{data:{}},
+        'properties':{data:{}},
+        'repairs':{data:{}},
         'tax':{},
-        'repairs':{}
+        'mykeys':{}
     }
     var mystate = {
         col:'#col1',
-        estate_id: '',
+        server:'',
+        estate_id: 'EA037',
         street_id: '',
         property_id: '',
         repairs_id: '',
@@ -18,12 +22,14 @@ $(function() {
     }
     var loadedesates = false;
     var stuff = 0;
+    var video = null;
+    var framerate = 25;
 
     function query(url){
         stuff += 1;
         // Check if we should get content from the local cache
         if(url=== '/api/taxyear' && cache.tax[mystate.estate_id]!=undefined){
-            console.log(stuff+': LOAD LOCAL CONTENT'+mystate.estate_id)
+            logme(stuff+': LOAD LOCAL CONTENT'+mystate.estate_id)
             setstate('tax');
             return
         }
@@ -67,8 +73,18 @@ $(function() {
     function setcontent(url, resp){
         qry = resp.qry;
         html = '';
+        if(mystate.server===''){
+            mystate.server=resp.server;
+        }else{
+            if (mystate.server === 'production'){
+                cols=1;
+                $('#col2').remove();
+                $('#col3').remove();
+                $('#col4').remove();
+            }
+        }
         if(url == '/api/taxyear'){
-            console.log(stuff+': GEN HTML')
+            logme(stuff+': GEN HTML')
             // Create the title
             var t = resp.estate_name;
             if(resp.estate_id=='ALL'){
@@ -88,10 +104,11 @@ $(function() {
             html += '</tr>'
             html += '</table>'
             // WORK PROGRAMMES
-            //console.log(resp.workprog);
+            //logme(resp.workprog);
             html += '<h4>'+title+'Work programmes (Invoiced items)</h4>';
             html += '<table>';
             html += dateheader(resp.dates,'Progs')
+            cache.mykeys = resp.mykeys;
             for (var k in resp.workprog) {
                 var name = resp.mykeys[k];
                 html += '<tr>';
@@ -122,8 +139,8 @@ $(function() {
             html += '</table>';
             // TRADES
             if(resp.showtrades){
-                console.log('TRADES-----------');
-                //console.log(resp.trades);
+                logme('TRADES-----------');
+                //logme(resp.trades);
                 html += '<h4>'+title+'Trades (Invoiced items)</h4>';
                 html += '<table>';
                 html += dateheader(resp.dates,'Trades')
@@ -160,22 +177,32 @@ $(function() {
             setstate('tax');
         }else if(url == '/api/estates'){
             if(!loadedesates){
-                for (var i = 0; i < resp.estates.length; i++) {
-                    var estate = resp.estates[i].estate_name;
-                    var id = resp.estates[i].estate_id;
-                    html += '<option value='+id+'>'+estate+'</option>';
-                }
+                Object.keys(resp.estates).forEach(function(id) {
+                    var estate = resp.estates[id].estate_name;
+                    var p = numberWithCommas(resp.estates[id].properties)
+                    var props = ': '+p;
+                    if(id=='ALL'){props += ' properties';}
+                    if(id=='#'){props = '';}
+                    html += '<option value='+id+'>'+estate+props+'</option>';
+                });
+                cache.estates.data = resp.estates;
                 loadedesates = true;
             }else{
                 return
             }
-            setcol(html);
+            $(mystate.col).html(html);
+            $("select"+mystate.col).val("EA037");
+            $(mystate.col).focus();
             setstate();
         }else if(url == '/api/streets'){
             for (var i = 0; i < resp.streets.length; i++) {
                 var id = resp.streets[i].id;
+                var p = numberWithCommas(resp.streets[i].properties)
+                var props = ': '+p;
+                if(id=='#'){props=''}
                 var name = resp.streets[i].name;
-                html += '<option value='+id+'>'+name+'</option>';
+                html += '<option value="'+id+'">'+name+props+'</option>';
+                cache.streets.data[id] = resp.streets[i];
             }
             setcol(html);
             setstate();
@@ -188,27 +215,31 @@ $(function() {
             setcol(html);
             setstate();
         }else if(url == '/api/properties'){
-            for (var i = 0; i < resp.properties.length; i++) {
-                var num = resp.properties[i].AddressLine1;
-                var Street = resp.properties[i].Street;
-                var id = resp.properties[i].PropRef;
-                html += '<option value="'+id+'">'+num+' '+Street+'</option>';
-            }
+            var a = b = '';
+            Object.keys(resp.properties).forEach(function(id) {
+                var num = resp.properties[id].address1;
+                var street = resp.properties[id].street;
+                var c = '<option value="'+id+'">'+num+' '+street+'</option>';
+                if(id=='ALL'){
+                    a = c
+                }else if(id=='#'){
+                    b = c
+                }else{
+                    html += c;
+                }
+            });
+            html = a+b+html;
+            cache.properties.data = resp.properties;
             setcol(html);
             setstate();
         }else if(url == '/api/repairs'){
             for (var i = 0; i < resp.repairs.length; i++) {
-                console.log(resp.repairs[i])
-                var WORef = resp.repairs[i].WORef;
-                cache.repairs[WORef] = resp.repairs[i];
+                var id = resp.repairs[i].repairs_id;
+                cache.repairs.data[id] = resp.repairs[i];
                 var DateRaised = resp.repairs[i].DateRaised;
-                var DateInvoiced = resp.repairs[i].DateInvoice;
-                if(DateInvoiced==''){
-                    DateInvoiced = '[NoInvoice]'
-                }
-                var cost = resp.repairs[i].FinalCostInPence;
-                var desc = resp.repairs[i].WODescription;
-                var txt = DateRaised+' to '+DateInvoiced+' £'+cost;
+                var cost = adddecimalpoint(resp.repairs[i].FinalCostInPence)
+                cost = numberWithCommas(cost);
+                var txt = DateRaised+' £'+cost;
                 html += '<option value="'+id+'">'+txt+'</option>'
             }
             setcol(html);
@@ -290,31 +321,31 @@ $(function() {
         mystate.col = "#col"+thisfocus;
         mystate.value = $(mystate.col).find(":selected").val();
         mystate.text = $(mystate.col).find(":selected").text();
-        if(thisfocus==1){
+        if(thisfocus==1){      // ESTATES
             mystate.estate_id = mystate.value;
             mystate.estate_name = mystate.text;
             mystate.url  = '/api/estates';
-            mystate.arch = {};
-            mystate.WORef = '';
+            mystate.property_id = '';
+            mystate.repairs_id = '';
             mystate.street_id = '';
             if(w!='tax'){
                 query('/api/taxyear');
             }
-        }else if(thisfocus==2){
+        }else if(thisfocus==2){ // STREETS
             mystate.street_id = mystate.value;
             mystate.street_name = mystate.text;
-            mystate.arch = {};
-            mystate.WORef = '';
+            mystate.property_id = '';
+            mystate.repairs_id = '';
             mystate.url = '/api/streets';
             $("select"+'#col'+(thisfocus-1)).val(mystate.estate_id);
-        }else if(thisfocus==3){
-            mystate.PropRef = mystate.value;
+        }else if(thisfocus==3){ // PROPERTIES
+            mystate.property_id = mystate.value;
             mystate.address = mystate.text;
-            mystate.WORef = '';
+            mystate.repairs_id = '';
             mystate.url = '/api/properties';
             $("select"+'#col'+(thisfocus-1)).val(mystate.street_id);
-        }else if(thisfocus==4){
-            mystate.WORef = mystate.value;
+        }else if(thisfocus==4){ // REPAIRS
+            mystate.repairs_id = mystate.value;
             mystate.url = '/api/repairs';
             $("select"+'#col'+(thisfocus-1)).val(mystate.property_id);
         }
@@ -336,45 +367,85 @@ $(function() {
                 $( "#col"+i).html('');
             }
         }
-        // Tax box
-        $('#tax').html(cache.tax[mystate.estate_id]);
-        // Update info box
-        var msg = ''
-        if(thisfocus==4){
-            showbuild();
-            msg = '<img src="'+mystate.arch.image+'" />';
-            goframe();
-        }
-        $('#infobox').html(msg);
         // QRY BOX
         $('#qry').html(qry);
         // DEBUG BOX
-        var msg = 'DEBUG<br />';
-        msg += 'thisfocus:'+thisfocus+'<br/>';
+        var msg = 'thisfocus:'+thisfocus+'<br/>';
         Object.keys(mystate).forEach(function(key) {
             msg += key+': '+mystate[key]+'<br />';
         });
         $('#debug').html(msg);
-        // Video text box
-        op =  mystate.estate_id+': '+mystate.estate_name+'<br />';
+        // ESTATE TEXT
+        var estate = cache.estates.data[mystate.estate_id];
+        msg = estate.estate_name+'<br />';
+        msg += '<div class="sub">('+estate.properties+' homes managed by Lambeth)</div>';
+        if(thisfocus=='1'){
+            $('#tax').html(cache.tax[mystate.estate_id]);
+        }
+        // STREET TEXT
         if(t(mystate.street_id)){
-            op += mystate.street_id+': '+mystate.street_name +'<br />';
+            var street = cache.streets.data[mystate.street_id];
+            msg += street.name +'<br />';
+            msg += '<div class="sub">('+street.properties +' homes)</div>';
+            $('#tax').html('');
         }
-        if(t(mystate.arch.structure)){
-            op += mystate.arch.structure+' Recorded as:'+mystate.arch.beds+' bed<br />';
+        // HOME INFORMATION
+        if(mystate.property_id=='ALL' || mystate.property_id=='#' ){
+            $('#tax').html('');
         }
-        if(t(mystate.arch.beds) && t(mystate.arch.size)){
-            op += 'Size: '+mystate.arch.size+'<br />';
+        if(t(mystate.property_id)){
+            var property = cache.properties.data[mystate.property_id];
+            var num = property.address1;
+            var aft = struct = '';
+            //logme(property);
+            // Build the property text/video/image display
+            if(num===null || num=="" || property.street==""){
+                num = property.tmp_structure_add.replace(street.name, "");
+                aft = '<div class="sub">(exact address unknown)</div>';
+            }else{
+                if(property.bedrooms <=1){
+                    btxt = 'bed'
+                }else{
+                    btxt = 'beds'
+                }
+                struct = '<div class="sub">(';
+                struct += property.bedrooms+' '+btxt+' | ';
+                struct += property.size_sq_meter+' Sqm )';
+                struct += '</div>'
+                // show the  video frame
+                goframe(property.video_frame, property.file_name);
+            }
+            msg += num+' '+property.street+'<br />'+aft+struct;
+            var img = '';
+            if(t(property.image_plan)){
+                img = '<img src="images/'+property.image_plan+'" />';
+            }
+            //$('#tax').html(img); // display on right
+            msg += img;            // display on left
         }
-        if(t(mystate.WORef)){
-            op += 'WorkOrder: <br />'+mystate.WORef;
+        // WORK ORDERS
+        if(t(mystate.repairs_id)){
+            var repair = cache.repairs.data[mystate.repairs_id];
+            // WORef, WorkProg, MainTrade, FinalCostInPence,
+            // WODescription, DateRaised, DateInvoice: ""
+            rmsg = '<div id="repair">'; //class="fadeback"
+            rmsg += '<h4>ID:'+repair.WORef;
+            cost = adddecimalpoint(repair.FinalCostInPence)
+            cost = numberWithCommas(cost);
+            rmsg += ' Cost: £'+cost+' </h4>';
+            rmsg += ' Trade:'+repair.MainTrade;
+            logme(cache.mykeys)
+            rmsg += '<span id="status"><b>Status:</b>'+cache.mykeys[repair.WOStatus]+''+repair.WOStatus+'</span>';
+            rmsg += '<hr />';
+            rmsg += ' Raised:'+repair.DateRaised;
+            rmsg += ' Invoiced:'+repair.DateInvoice;
+            rmsg += '<hr />';
+            rmsg += repair.WODescription;
+            rmsg += '</div>';
+            $('#tax').html(rmsg);
         }
-        $('#vidmsg').html(op);
-        //estate_id: '',
-        //street_id: '',
-        //property_id: '',
-        //repairs_id: '',
-        //trade_id: '',
+        // OVERLAY VIDEO TXT
+        $('#vidmsg').html(msg);
     }
 
     function t(v){
@@ -385,51 +456,94 @@ $(function() {
         }
     }
 
-    function showbuild(){
-        var blocks = [
-            "/images/AE037-BlockTypeA.png",
-            "/images/AE037-BlockTypeB.png",
-            "/images/AE037-BlockTypeC.png",
-            "/images/AE037-Bungalow.png"
-        ];
-        var block = blocks[Math.floor(Math.random()*blocks.length)];
-        mystate.arch.structure = '2 bed (4p) House';
-        mystate.arch.beds = '2';
-        mystate.arch.size = '797 sq feet';
-        mystate.arch.image = block;
+    function createvideo(myfile){
+        if (mystate.server==='production' || mystate.server===''){
+            $("#video").html('<img src="/images/background.png">');
+            console.lo
+            return
+        }
+        var filepath ="/media/video/CGE.spv/"+myfile;
+        if(myfile==null){
+            logme('videofile=null');
+            return
+        }else if(myfile==vidfile){
+            logme('video already running: '+myfile);
+            return
+        }
+        logme('Load a new file:'+myfile);
+        // Generate the HTML
+        if(video==''){
+            var videohtml = '<video id="myvid" width="100%" controls loop autoplay>' //autoplay
+            videohtml += '<source src="'+filepath+'" type="video/mp4">';
+            //video += '<source src="mov_bbb.ogg" type="video/ogg">';
+            videohtml += 'Your browser does not support HTML5 video.';
+            videohtml += '</video>';
+            $("#video").html(videohtml);
+            // Video control
+            video = $('video').get(0);
+            video.onplay = function () {
+                theInterval = setInterval(function() {
+                    getFrame();
+                }, (1000 / framerate));
+            };
+            video.pause();
+        }else{
+            video.pause();
+            $('#myvid').attr('src', filepath);
+            video.load();
+            /*$('#myvid').addEventListener('loadedmetadata', function() {
+                var settime = newframe/framerate;
+                this.currentTime = newframe/framerate;
+                logme('loaded:'+settime)
+            }, false);*/
+            //video.play();
+        }
+        // Set the global video file ref
+        vidfile = myfile;
     }
 
-    // Load defaut content
-    var video = '<video id="myvid" width="100%" controls loop autoplay>' //autoplay
-    video += '<source src="/video/UpgroveManorWay1920x1080.MP4" type="video/mp4">';
-    //video += '<source src="mov_bbb.ogg" type="video/ogg">';
-    video += 'Your browser does not support HTML5 video.';
-    video += '</video>';
-    $("#video").html(video);
-
-    // Video control
-    var video = $('video').get(0);
-    var framerate = 25;
     function getFrame() {
         curTime = video.currentTime;
         frame=Math.floor(curTime*framerate);
         $('#vidframe').text('Frame: '+frame);
     }
 
-    video.onplay = function () {
-        theInterval = setInterval(function() {
-            getFrame();
-        }, (1000 / framerate));
-    };
+    var frametimer = 500;
+    var newframe = '1';
+    var myvidtimer = setTimeout( function(){}, 1);
+    var gmyfile = '';
 
-    function goframe(){
-        frames = [1608, 2204, 2954, 7104, 8086];
-        var myframe = frames[Math.floor(Math.random()*frames.length)];
-        video.currentTime=myframe/framerate;
+    function goframe(myframe, myfile){
+        gmyfile = myfile;
+        clearTimeout(myvidtimer);
+        newframe = Number(myframe);
+        myvidtimer = setTimeout(setframe, frametimer)
+    }
+
+    function setframe(){
+        if(newframe != ''){
+            createvideo(gmyfile)
+            if(video.paused){
+                video.play();
+            }
+            video.currentTime=newframe/framerate;
+        }
+    }
+
+    function goframerandom(){
+        var myframe = Math.floor(Math.random()*8086);
+        goframe(myframe)
+    }
+
+    function logme(msg){
+        if (mystate.server === 'development'){
+            console.log(msg);
+        }
     }
 
     // Load default values
-    video.pause();
+    var vidfile = '', video = '';
+    createvideo('CROSBY-TOP.21-39.BACKofSMW.23sept17.HiRes.MP4');
     query('/api/estates');
-    query('/api/totalrepairs');
+    //query('/api/totalrepairs');
 });
