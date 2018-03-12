@@ -12,18 +12,8 @@ var users = require('./routes/users');
 var app = express();
 var qry = '';
 var mycache = {};
-
 const dbPath = path.resolve(__dirname, 'lambeth.db')
-console.log(process.versions.node);
 var server = process.env.NODE_ENV;
-
-if (process.env.NODE_ENV === 'development') {
-    console.log("DEV SERVER");
-}
-if (process.env.NODE_ENV === 'production') {
-    console.log("PRODUCTION SERVER");
-}
-
 
 // View engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -36,9 +26,22 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
 app.use('/', index);
 app.use('/users', users);
+
+function logme(msg){
+    if (process.env.NODE_ENV === 'development') {
+        console.log(msg);
+    }
+}
+
+logme(process.versions.node);
+if (process.env.NODE_ENV === 'development') {
+    logme("DEV SERVER");
+}
+if (process.env.NODE_ENV === 'production') {
+    logme("PRODUCTION SERVER");
+}
 
 // Cache DB queries to reduce load on the server
 function cache(db, p){
@@ -50,14 +53,14 @@ function cache(db, p){
     // See if we already have the cache and wait for a response
     var qry = 'SELECT cache_id, data FROM cache WHERE cache_id="'+cacheid+'"';
     // How to create a nodjejs Promise:  https://medium.com/dev-bits/writing-neat-asynchronous-node-js-code-with-promises-32ed3a4fd098
-    console.log('run cache');
+    logme('run cache');
     return new Promise(function(resolve, reject) {
-        console.log('run cache2');
+        logme('run cache2');
         db.each(qry, function(err, row) {
             if (err) {
                 reject(err);
             } else {
-                console.log("got row: "+row.cache_id);
+                logme("got row: "+row.cache_id);
                 thiscache.result='gotcache';
                 thiscache.data=JSON.parse(row.data);
             }
@@ -70,15 +73,15 @@ function cache(db, p){
 function sendmeback(db, res, p, msg){
     res.send(p);
     var qry = ''
-    //console.log(msg);
+    //logme(msg);
     // Create cache
     p_string = JSON.stringify(p);
     var qry = 'INSERT INTO cache(cache_id, data) VALUES(?,?)';
     db.run(qry, [mycache.cacheid,p_string], function(err) {
         if (err) {
-            console.log('Cache already exists');
+            logme('Cache already exists');
         }else{
-            console.log('A row has been inserted with rowid'+this.lastID);
+            logme('A row has been inserted with rowid'+this.lastID);
         }
     });
     // CLose the DB
@@ -86,7 +89,7 @@ function sendmeback(db, res, p, msg){
 }
 
 function myprom(bob){
-   console.log('START MYPROM: '+bob)
+   logme('START MYPROM: '+bob)
    return new Promise(function(resolve, reject) {
         resolve('DONE');
    })
@@ -98,20 +101,20 @@ app.post('/api/taxyear', function(req, res) {
     var db = new sqlite3.Database(dbPath);
     var p = req.body;
     var qry;
-    //console.log(p)
+    //logme(p)
     myprom('go on then you bugger').then(function(result) {
-        console.log(result);
+        logme(result);
     })
 
     cache(db, p).then(function(result) {
         mycache = result;
         if(mycache.result==='gotcache'){
-            console.log("     Retrived DB query from cache");
+            logme("     Retrived DB query from cache");
             msg = "Generated taxyear";
             p = mycache.data;
             sendmeback(db, res, p, msg);
         }else{
-            console.log("     Performed DB query then added to cache");
+            logme("     Performed DB query then added to cache");
             p.server = server;
             p.taxyear = [];
             p.workprog = {};
@@ -261,7 +264,7 @@ app.post('/api/taxyear', function(req, res) {
             });
         }
     }, function(err) {
-       console.log('Error retrieving cache: '+mycache.result);
+       logme('Error retrieving cache: '+mycache.result);
     })
 
 
@@ -270,7 +273,7 @@ app.post('/api/taxyear', function(req, res) {
 app.post('/api/estates', function(req, res) {
     // { estate_id: '', street_id: '', property_id: '', repairs_id: '' }
     //host = request.headers.host;
-    //console.log('#######HOST: '+host)
+    //logme('#######HOST: '+host)
     var db = new sqlite3.Database(dbPath);
     var p = req.body;
     var qry;
@@ -287,8 +290,8 @@ app.post('/api/estates', function(req, res) {
         p.qry = qry;
         res.send(p);
         db.close();
-        console.log('\n[--Return list of estates--]');
-        console.log(qry);
+        logme('\n[--Return list of estates--]');
+        logme(qry);
     }
     db.serialize(function() {
         //qry = "SELECT estate_id, estate_name \n";
@@ -309,7 +312,7 @@ app.post('/api/estates', function(req, res) {
                 name = row.estate_name;
                 if(id == 'ENST4'){
                     name = '!NO NAME!';
-                    console.log(row)
+                    logme(row)
                 }
                 p.estates[id] = {
                     estate_name:name,
@@ -337,8 +340,8 @@ app.post('/api/streets', function(req, res) {
         p.qry = qry;
         res.send(p);
         db.close();
-        console.log('\n[--Return list of streets--]');
-        console.log(qry);
+        logme('\n[--Return list of streets--]');
+        logme(qry);
     }
     db.serialize(function() {
         eqry = "";
@@ -378,8 +381,8 @@ app.post('/api/trades', function(req, res) {
         p.qry = qry;
         res.send(p);
         db.close();
-        console.log('\n[--Return list of trades--]');
-        console.log(qry);
+        logme('\n[--Return list of trades--]');
+        logme(qry);
     }
     db.serialize(function() {
         qry = "SELECT key_id as trade_id, name \n";
@@ -416,8 +419,8 @@ app.post('/api/properties', function(req, res) {
     function send(){
         res.send(p);
         db.close();
-        console.log('\n[--Return list of propeties--]');
-        console.log(p.qry);
+        logme('\n[--Return list of propeties--]');
+        logme(p.qry);
     }
     db.serialize(function() {
         if(p.street_id=='ALL'){
@@ -463,8 +466,8 @@ app.post('/api/repairs', function(req, res) {
         p.qry = qry;
         res.send(p);
         db.close();
-        console.log('\n[--Return list of repairs--]');
-        console.log(qry);
+        logme('\n[--Return list of repairs--]');
+        logme(qry);
     }
     db.serialize(function() {
         var pqry = "";
@@ -507,8 +510,8 @@ app.post('/api/totalrepairs', function(req, res) {
         p.qry = qry;
         res.send(p);
         db.close();
-        console.log('\n[--Return total repairs--]');
-        console.log(qry);
+        logme('\n[--Return total repairs--]');
+        logme(qry);
     }
     db.serialize(function() {
         qry = "SELECT DISTINCT WOref, WorkProg, MainTrade, TotalCost, WODescription, DateRaised \n";

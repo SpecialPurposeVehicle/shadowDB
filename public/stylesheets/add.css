@@ -1,0 +1,54 @@
+html{
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+body div{
+  font-size:110%;
+}
+body #vidmsg{
+  position:absolute;
+  top:40px;
+  left:260px;
+  width:100%;
+  text-align:left;
+  padding:0px;
+}
+#videocover #video{
+  position:absolute;
+  overflow:hidden;
+  width:100%;
+}
+#videocover #video img{
+  width:100%;
+  height:100%;
+}
+html body #right{
+  position:absolute;
+  width:100%;
+}
+body #tax{
+  width:none;
+  overflow:unset;
+  padding:0px;
+  margin:0px;
+  margin-left:245px;
+  margin-right:45px;
+
+}
+body #tax table{
+  background:#fff;
+}
+body #debug,
+body #qry{
+  position:absolute;
+  left:18px;
+  margin-top:150px;
+  width:200px;
+  height:150px;
+}
+body #debug{
+  margin-top:310px;
+}
+#col2,#col3,#col4{
+  display:none;
+}
