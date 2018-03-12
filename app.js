@@ -13,7 +13,7 @@ var app = express();
 var qry = '';
 var mycache = {};
 
-process.env.NODE_ENV = 'production'
+
 var server = process.env.NODE_ENV;
 
 if (process.env.NODE_ENV === 'development') {
