@@ -13,6 +13,7 @@ var app = express();
 var qry = '';
 var mycache = {};
 
+const dbPath = path.resolve(__dirname, 'lambeth.db')
 
 var server = process.env.NODE_ENV;
 
@@ -84,7 +85,7 @@ function sendmeback(db, res, p, msg){
 
 app.post('/api/taxyear', function(req, res) {
     // { estate_id: '', street_id: '', property_id: '', repairs_id: '' }
-    var db = new sqlite3.Database('lambeth.db');
+    var db = new sqlite3.Database(dbPath);
     var p = req.body;
     var qry;
     //console.log(p)
@@ -257,7 +258,7 @@ app.post('/api/estates', function(req, res) {
     // { estate_id: '', street_id: '', property_id: '', repairs_id: '' }
     //host = request.headers.host;
     //console.log('#######HOST: '+host)
-    var db = new sqlite3.Database('lambeth.db');
+    var db = new sqlite3.Database(dbPath);
     var p = req.body;
     var qry;
     p.server = server;
@@ -311,7 +312,7 @@ app.post('/api/estates', function(req, res) {
 
 app.post('/api/streets', function(req, res) {
     // { estate_id: '', street_id: '', property_id: '', repairs_id: '' }
-    var db = new sqlite3.Database('lambeth.db');
+    var db = new sqlite3.Database(dbPath);
     var p = req.body;
     var qry;
     p.server = server;
@@ -352,7 +353,7 @@ app.post('/api/streets', function(req, res) {
 
 app.post('/api/trades', function(req, res) {
     // { estate_id: '', street_id: '', property_id: '', repairs_id: '' }
-    var db = new sqlite3.Database('lambeth.db');
+    var db = new sqlite3.Database(dbPath);
     var p = req.body;
     var qry;
     p.server = server;
@@ -382,7 +383,7 @@ app.post('/api/trades', function(req, res) {
 
 app.post('/api/properties', function(req, res) {
     // { estate_id: '', street_id: '', property_id: '', repairs_id: '' }
-    var db = new sqlite3.Database('lambeth.db');
+    var db = new sqlite3.Database(dbPath);
     var p = req.body;
     p.server = server;
     p.properties = {
@@ -441,7 +442,7 @@ app.post('/api/properties', function(req, res) {
 
 app.post('/api/repairs', function(req, res) {
     // { estate_id: '', street_id: '', property_id: '', repairs_id: '' }HOMES
-    var db = new sqlite3.Database('lambeth.db');
+    var db = new sqlite3.Database(dbPath);
     var p = req.body;
     p.server = server;
     p.repairs = [];
@@ -485,7 +486,7 @@ app.post('/api/repairs', function(req, res) {
 
 app.post('/api/totalrepairs', function(req, res) {
     // { estate_id: '', street_id: '', property_id: '', repairs_id: '' }
-    var db = new sqlite3.Database('lambeth.db');
+    var db = new sqlite3.Database(dbPath);
     var p = req.body;
     p.totalrepairs = [];
     p.server = server;
