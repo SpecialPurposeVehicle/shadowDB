@@ -7,4 +7,5 @@ then
     NODE_ENV="development" npm start
 else
     forever start -c 'NODE_ENV="production" npm start' $apppath
+fi
 echo $NODE_ENV
