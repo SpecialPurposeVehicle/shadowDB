@@ -1,11 +1,13 @@
-# Example start script
-# Change the machine/apppath to target your own computer
+# Start script for shadow DB. Note:
+# Change the machine anme to target your own 'local' computer
 machine=$(uname -n)
-apppath='/srv/meteor/shadow.db-estate.co.uk/'
+
+# Either start locally or use 'forever' on a production server
 if [ $machine == 'dellboy' ]
 then
     NODE_ENV="development" npm start
 else
-    forever start -c 'NODE_ENV="production" npm start' $apppath
+    export NODE_ENV="production"
+    SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
+    forever start $SCRIPTPATH/bin/www
 fi
-echo $NODE_ENV
