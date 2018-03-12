@@ -14,7 +14,7 @@ var qry = '';
 var mycache = {};
 
 const dbPath = path.resolve(__dirname, 'lambeth.db')
-
+console.log(process.versions.node);
 var server = process.env.NODE_ENV;
 
 if (process.env.NODE_ENV === 'development') {
@@ -42,25 +42,27 @@ app.use('/users', users);
 
 // Cache DB queries to reduce load on the server
 function cache(db, p){
-    mycache = {result:'nocache'}
+    thiscache = {result:'nocache'};
     // Generate a unique ID for the cache
     var cacheid = p.col+p.estate_id+p.street_id+p.property_id+p.repairs_id;
     cacheid += p.trade_id+p.value+p.url;
-    mycache.cacheid = cacheid;
+    thiscache.cacheid = cacheid;
     // See if we already have the cache and wait for a response
     var qry = 'SELECT cache_id, data FROM cache WHERE cache_id="'+cacheid+'"';
     // How to create a nodjejs Promise:  https://medium.com/dev-bits/writing-neat-asynchronous-node-js-code-with-promises-32ed3a4fd098
+    console.log('run cache');
     return new Promise(function(resolve, reject) {
+        console.log('run cache2');
         db.each(qry, function(err, row) {
             if (err) {
                 reject(err);
             } else {
                 console.log("got row: "+row.cache_id);
-                mycache.result='gotcache';
-                mycache.data=JSON.parse(row.data);
+                thiscache.result='gotcache';
+                thiscache.data=JSON.parse(row.data);
             }
         }, function() {
-            resolve(mycache);
+            resolve(thiscache);
         })
     })
 }
@@ -83,14 +85,25 @@ function sendmeback(db, res, p, msg){
     db.close();
 }
 
+function myprom(bob){
+   console.log('START MYPROM: '+bob)
+   return new Promise(function(resolve, reject) {
+        resolve('DONE');
+   })
+}
+
+
 app.post('/api/taxyear', function(req, res) {
     // { estate_id: '', street_id: '', property_id: '', repairs_id: '' }
     var db = new sqlite3.Database(dbPath);
     var p = req.body;
     var qry;
     //console.log(p)
-    var cachePromise = cache(db, p);
-    cachePromise.then(function(result) {
+    myprom('go on then you bugger').then(function(result) {
+        console.log(result);
+    })
+
+    cache(db, p).then(function(result) {
         mycache = result;
         if(mycache.result==='gotcache'){
             console.log("     Retrived DB query from cache");
