@@ -52,3 +52,22 @@ body #debug{
 #col2,#col3,#col4{
   display:none;
 }
+
+
+
+
+
+@media screen and (max-width: 640px){
+    body #tax{
+      margin-left:0px;
+      margin-right:45px;
+      margin-top:10px;
+    }
+    body div{
+      font-size:90%;
+    }
+    body #debug,
+    body #qry{
+      display:none;
+    }
+}
