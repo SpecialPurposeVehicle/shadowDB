@@ -81,6 +81,10 @@ $(function() {
                 $('#col2').remove();
                 $('#col3').remove();
                 $('#col4').remove();
+            }else if (mystate.server === 'development'){
+                $('#col2').css("display","block");
+                $('#col3').css("display","block");
+                $('#col4').css("display","block");
             }
         }
         if(url == '/api/taxyear'){

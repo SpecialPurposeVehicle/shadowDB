@@ -1,3 +1,24 @@
+#menu{
+  position:fixed;
+  left:20px;
+  top:18px;
+  height:130px;
+  width:50px;
+  overflow:hidden;
+  background:#fff;
+}
+#menu:hover{
+  opacity: 0.7;
+}
+#top{
+  padding-left:50px;
+}
+#menu img{
+  width:80%;
+  opacity: 0.9;
+  margin-left:5px;
+  margin-top:40px;
+}
 html{
   overflow-y: scroll;
   overflow-x: hidden;
@@ -6,12 +27,13 @@ body div{
   font-size:110%;
 }
 body #vidmsg{
-  position:absolute;
-  top:40px;
-  left:260px;
-  width:100%;
+  position:fixed;
+  top:170px;
+  left:17px;
+  width:350px;
   text-align:left;
   padding:0px;
+  font-size:120%;
 }
 #videocover #video{
   position:absolute;
@@ -24,26 +46,29 @@ body #vidmsg{
 }
 html body #right{
   position:absolute;
-  width:100%;
+  width:auto;
+  padding:0px;
+  margin:0px;
+  top:20px;
+  left:380px;
+  right:20px;
 }
 body #tax{
-  width:none;
+  width:auto;
   overflow:unset;
   padding:0px;
   margin:0px;
-  margin-left:245px;
-  margin-right:45px;
-
 }
 body #tax table{
   background:#fff;
 }
 body #debug,
 body #qry{
-  position:absolute;
-  left:18px;
-  margin-top:150px;
-  width:200px;
+  position:fixed;
+  left:17px;
+  top:auto;
+  bottom:10px;
+  width:330px;
   height:150px;
 }
 body #debug{
@@ -52,9 +77,9 @@ body #debug{
 #col2,#col3,#col4{
   display:none;
 }
-
-
-
+#repair{
+  margin-top:155px;
+}
 
 
 @media screen and (max-width: 640px){
