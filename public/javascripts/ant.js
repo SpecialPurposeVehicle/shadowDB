@@ -266,7 +266,11 @@ $(function() {
         $(mystate.col).focus();
     }
 
-    /* ON MOUSE EVENT
+    /* ON MOUSE EVENT */
+    $('#menu').mousedown(function(e) {
+        $('#tax').html('<div id="about"><h1>Shadow Database</h1><p>This website displays summary repairs data for all estates in lambeth. This data has been obtained via a Freedom Of Information requests, a <a href="http://www.thepeoplesaudit.info/">citizen-led audit</a> of Lambeth Councils housing data, and as part of the <a href="https://twitter.com/savecressingham">@savecressingham</a> activist campaign. All code and data for this project is provided \'open-source\' within a <a href="https://github.com/SpecialPurposeVehicle/shadowDB">git repository</a>.</p><h2>Database (e)State</h2><p>This website is the product of PhD artist/activist/research titled \'Database (e)State\' undertaken by myself (Tom Keene). The project researches the role of housing databases within processes of urban regneration. More information can be found at the follwoing website<a href="http://www.db-estate.co.uk">www.db-estate.co.uk</a></p></div>');
+    });
+    /*
     $('.setview').mousedown(function(e) {
         var id = e.delegateTarget.id;
         var val = e.target.value;
